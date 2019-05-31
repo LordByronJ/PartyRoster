@@ -208,6 +208,9 @@ class Rosters(Frame):
         exit()
 
 def main():
+    """
+        Main Method
+    """
     db = DB()
     root = Tk()
     size = "500x500"
