@@ -9,7 +9,7 @@ class DB():
         pass
 
     def create(self):
-        conn = sqlite3.connect('demo.db')
+        conn = sqlite3.connect('db.db')
         cur = conn.cursor()
         cur.execute("""CREATE TABLE def
         (
@@ -20,7 +20,7 @@ class DB():
         conn.close()
 
     def add(self, cat, name):
-        conn = sqlite3.connect('demo.db')
+        conn = sqlite3.connect('db.db')
         cur = conn.cursor()
         with conn: 
             cur.execute("INSERT INTO def VALUES (?, ?)", (cat, name))
@@ -28,7 +28,7 @@ class DB():
         conn.close()
 
     def remove(self, cat, name):
-        conn = sqlite3.connect('demo.db')
+        conn = sqlite3.connect('db.db')
         cur = conn.cursor()
         with conn: 
             cur.execute("DELETE FROM def WHERE cat LIKE ? AND name LIKE ?", (cat, name))
@@ -36,7 +36,7 @@ class DB():
         conn.close()
 
     def findPerson(self, type_, info):
-        conn = sqlite3.connect('demo.db')
+        conn = sqlite3.connect('db.db')
         cur = conn.cursor()
         with conn:
             cur.execute("SELECT * FROM def WHERE ? LIKE ? ", (type_, info))
@@ -53,15 +53,12 @@ class Rosters(Frame):
         self.defList = list()
         self.mayList = list()
         self.lables = list()
-
+        self.addUI(root)
         for s in self.db.findPerson("%", "%"):
             if s[0] == "def":
                 self.defList.append(s[1])
             elif s[0] == "may":
                 self.mayList.append(s[1])
-
-        self.addUI(root, db)
-
         self.update()
     
     def removeMay(self):
@@ -77,6 +74,7 @@ class Rosters(Frame):
             self.mayList.remove(s.upper())
             self.db.remove("may", s)
             self.update()
+        return s
     
     def removeDef(self):
         s = self.enD.get().upper()
@@ -91,6 +89,7 @@ class Rosters(Frame):
             self.defList.remove(s.upper())
             self.db.remove("def", s)
             self.update()
+        return s
     
     def addMay(self):
         s = self.enM.get().upper()
@@ -105,6 +104,7 @@ class Rosters(Frame):
             self.mayList.append(s.upper())
             self.db.add("may", s)
             self.update()
+        return s
     
     def addDef(self):
         s = self.enD.get().upper()
@@ -119,6 +119,25 @@ class Rosters(Frame):
             self.defList.append(s.upper())
             self.db.add("def", s)
             self.update()
+        return s
+
+    def transferfromMay(self):
+        s = self.removeMay()
+        defStringTemp = self.enD.get().strip()
+        self.enD.delete(0, "end")
+        self.enD.insert(0, s)
+        self.addDef()
+        self.enD.delete(0, "end")
+        self.enD.insert(0, defStringTemp)
+
+    def transferFromDef(self):
+        s = self.removeDef()
+        mayStringTemp = self.enM.get().strip()
+        self.enM.delete(0, "end")
+        self.enM.insert(0, s)
+        self.addMay()
+        self.enM.delete(0, "end")
+        self.enM.insert(0, mayStringTemp)
 
     def update(self):
         self.defList.sort()
@@ -140,30 +159,37 @@ class Rosters(Frame):
         self.defCount['text'] = str(len(self.defList))
         self.mayCount['text'] = str(len(self.mayList))
         
-    def addUI(self, root, db):
+    def addUI(self, root):
+        """
+            Creates UI elements, like imput and buttons
+            Parameters:
+                The tk object
+        """
         scrollbar = Scrollbar(root)
         scrollbar.pack(side="right", fill="y")
 
         self.enD = Entry(self.tk)
         self.enD.pack(anchor = "e", padx = 20, pady = 10)
         
-        root.bind('<Return>', self.addDef())
         button = Button(self.tk, text="Submit to Definetly Invite List", command=partial(self.addDef,))
         button.pack(anchor = "e", padx = 20, pady = 10)
         
-        button = Button(self.tk, text="Remove Definetly", command = partial(self.removeDef, ))
+        button = Button(self.tk, text="Remove from Definetly Invite List", command = partial(self.removeDef, ))
+        button.pack(anchor = "e", padx = 20, pady = 10)
+
+        button = Button(self.tk, text="Transfer to Maybe Invite list", command = partial(self.transferFromDef, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
         self.enM = Entry(self.tk)
         self.enM.pack(anchor = "e", padx = 20, pady = 10)
         
-        button = Button(self.tk, text="Submit Maybe", command = partial(self.addMay, ))
+        button = Button(self.tk, text="Submit to Maybe Invite List", command = partial(self.addMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
         
-        button = Button(self.tk, text="Remove Maybe", command = partial(self.removeMay, ))
+        button = Button(self.tk, text="Remove from Maybe Invite List", command = partial(self.removeMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        button = Button(self.tk, text="Transfer to Definetly list", command = partial(self.removeMay, ))
+        button = Button(self.tk, text="Transfer to Definetly list", command = partial(self.transferfromMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
         th = Button(self.tk, text="quit", command = self.quitComm)
