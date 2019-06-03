@@ -62,15 +62,15 @@ class Rosters(Frame):
         self.update()
     
     def removeMay(self):
-        s = self.enM.get().upper()
+        s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
             pass
         elif  not self.mayList.__contains__(s.upper()):
             messagebox.showinfo("Not Contained", s)
         else:
-            self.enM.delete(0, "end")
-            self.enM.insert(0, "")
+            self.enD.delete(0, "end")
+            self.enD.insert(0, "")
             self.mayList.remove(s.upper())
             self.db.remove("may", s)
             self.update()
@@ -92,15 +92,15 @@ class Rosters(Frame):
         return s
     
     def addMay(self):
-        s = self.enM.get().upper()
+        s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
             pass
         elif self.mayList.__contains__(s.upper()):
             messagebox.showinfo("Alredy Contained", s)
         else: 
-            self.enM.delete(0, "end")
-            self.enM.insert(0, "")
+            self.enD.delete(0, "end")
+            self.enD.insert(0, "")
             self.mayList.append(s.upper())
             self.db.add("may", s)
             self.update()
@@ -133,11 +133,11 @@ class Rosters(Frame):
     def transferFromDef(self):
         s = self.removeDef()
         mayStringTemp = self.enM.get().strip()
-        self.enM.delete(0, "end")
-        self.enM.insert(0, s)
+        self.enD.delete(0, "end")
+        self.enD.insert(0, s)
         self.addMay()
-        self.enM.delete(0, "end")
-        self.enM.insert(0, mayStringTemp)
+        self.enD.delete(0, "end")
+        self.end.insert(0, mayStringTemp)
 
     def update(self):
         self.defList.sort()
@@ -177,11 +177,9 @@ class Rosters(Frame):
         button = Button(self.tk, text="Remove from Definetly Invite List", command = partial(self.removeDef, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        button = Button(self.tk, text="Transfer to Maybe Invite list", command = partial(self.transferFromDef, ))
+        button = Button(self.tk, text="Transfer to Maybe Invite List", command = partial(self.transferFromDef, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        self.enM = Entry(self.tk)
-        self.enM.pack(anchor = "e", padx = 20, pady = 10)
         
         button = Button(self.tk, text="Submit to Maybe Invite List", command = partial(self.addMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
@@ -189,7 +187,7 @@ class Rosters(Frame):
         button = Button(self.tk, text="Remove from Maybe Invite List", command = partial(self.removeMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        button = Button(self.tk, text="Transfer to Definetly list", command = partial(self.transferfromMay, ))
+        button = Button(self.tk, text="Transfer to Definetly List", command = partial(self.transferfromMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
         th = Button(self.tk, text="quit", command = self.quitComm)
