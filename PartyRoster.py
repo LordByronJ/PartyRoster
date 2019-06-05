@@ -204,8 +204,10 @@ class Rosters(Frame):
             guest_name.pack(side=RIGHT, anchor="e")
             self.labels.append(guest_name)
             h = h + 1
-        self.defCount['text'] = str(len(self.defList))
-        self.mayCount['text'] = str(len(self.mayList))
+        s = '# of People Definetely Invited: ' + str(len(self.defList))
+        self.defCount['text'] = s
+        s = '# of People Maybe Invited: ' + str(len(self.mayList))
+        self.mayCount['text'] = s
 
         self.scrollFrame.pack(side='top', fill='both', expand=True)
 
@@ -239,16 +241,18 @@ class Rosters(Frame):
                         command=partial(self.remove_maybe, ))
         button.pack(anchor="e", padx=20, pady=10)
 
-        button = Button(root, text="Transfer to Definitely list", command=partial(self.transfer_from_maybe, ))
+        button = Button(root, text="Transfer to Definitely List", command=partial(self.transfer_from_maybe, ))
         button.pack(anchor="e", padx=20, pady=10)
 
-        th = Button(root, text="quit", command=self.quit_app)
+        th = Button(root, text="Quit", command=self.quit_app)
         th.pack(anchor="e", padx=20, pady=10)
 
-        self.defCount = Label(root, text=str(len(self.defList)))
+        s = '# of People Definetely Invited: ' + str(len(self.defList))
+        self.defCount = Label(root, text=s)
         self.defCount.pack(anchor="e", padx=20, pady=10)
 
-        self.mayCount = Label(root, text=str(len(self.mayList)))
+        s = '# of People Maybe Invited: ' + str(len(self.mayList))
+        self.mayCount = Label(root, text=s)
         self.mayCount.pack(anchor="e", padx=20, pady=10)
 
     @staticmethod
