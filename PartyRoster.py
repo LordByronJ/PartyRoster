@@ -65,6 +65,11 @@ class ScrollFrame(Frame):
         self.viewPort.bind("<Configure>",
                            self.onFrameConfigure)  # bind an event whenever the size of the viewPort frame changes.
 
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel) # bind scroll wheel to scroll bar
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*((event.delta))/2), "units")
+
     def onFrameConfigure(self, event):
         '''Reset the scroll region to encompass the inner frame'''
         self.canvas.configure(scrollregion=self.canvas.bbox(
@@ -265,11 +270,9 @@ def main():
     win = Rosters(root, db)
     root.mainloop()
 
-
 def remove_all():
     db = DB()
     db.remove("%", "%")
-
 
 if __name__ == '__main__':
     main()
