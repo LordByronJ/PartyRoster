@@ -4,6 +4,7 @@ from functools import partial
 
 import sqlite3
 
+
 class DB():
     def __init__(self):
         pass
@@ -15,14 +16,14 @@ class DB():
         (
             cat text,
             name text
-        )""" )
+        )""")
         conn.commit()
         conn.close()
 
     def add(self, cat, name):
         conn = sqlite3.connect('db.db')
         cur = conn.cursor()
-        with conn: 
+        with conn:
             cur.execute("INSERT INTO def VALUES (?, ?)", (cat, name))
         print("adding")
         conn.close()
@@ -30,7 +31,7 @@ class DB():
     def remove(self, cat, name):
         conn = sqlite3.connect('db.db')
         cur = conn.cursor()
-        with conn: 
+        with conn:
             cur.execute("DELETE FROM def WHERE cat LIKE ? AND name LIKE ?", (cat, name))
         print("removing")
         conn.close()
@@ -44,29 +45,63 @@ class DB():
         conn.close()
         return s
 
+class ScrollFrame(Frame):
+    def __init__(self, parent):
+        super().__init__(parent)  # create a frame (self)
+
+        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")  # place canvas on self
+        self.viewPort = Frame(self.canvas,
+                              background="#ffffff")  # place a frame on the canvas, this frame will hold the child widgets
+        self.vsb = Scrollbar(self, orient="vertical",
+                             command=self.canvas.yview)  # place a scrollbar on self
+        self.canvas.configure(yscrollcommand=self.vsb.set)  # attach scrollbar action to scroll of canvas
+
+        self.vsb.pack(side="right", fill="y")  # pack scrollbar to right of self
+        self.canvas.pack(side="left", fill="both", expand=True)  # pack canvas to left of self and expand to fil
+        self.canvas.create_window((4, 4), window=self.viewPort, anchor="nw",  # add view port frame to canvas
+                                  tags="self.viewPort")
+
+        self.viewPort.bind("<Configure>",
+                           self.onFrameConfigure)  # bind an event whenever the size of the viewPort frame changes.
+
+    def onFrameConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        self.canvas.configure(scrollregion=self.canvas.bbox(
+            "all"))  # whenever the size of the frame changes, alter the scroll region respectively.
+
+
 class Rosters(Frame):
 
     def __init__(self, root, db):
-        Frame.__init__(self, root) 
+        Frame.__init__(self, root)
         self.tk = root
         self.db = db
         self.defList = list()
         self.mayList = list()
         self.lables = list()
-        self.addUI(root)
+        self.rows = list()
+        self.scrollFrame = ScrollFrame(root)
+
+        self.listFrame = Frame(self.scrollFrame.viewPort, borderwidth=1, relief='solid')
+        self.listFrame.pack(side=LEFT, fill=Y)
+        self.buttonsFrame = Frame(self.scrollFrame.viewPort)
+        self.buttonsFrame.pack(side=RIGHT, fill=Y)
+
+
+        self.addUI(self.buttonsFrame)
         for s in self.db.findPerson("%", "%"):
             if s[0] == "def":
                 self.defList.append(s[1])
             elif s[0] == "may":
                 self.mayList.append(s[1])
         self.update()
-    
+
     def removeMay(self):
         s = self.enM.get().upper()
         s = s.strip()
         if len(s) == 0:
             pass
-        elif  not self.mayList.__contains__(s.upper()):
+        elif not self.mayList.__contains__(s.upper()):
             messagebox.showinfo("Not Contained", s)
         else:
             self.enM.delete(0, "end")
@@ -75,7 +110,7 @@ class Rosters(Frame):
             self.db.remove("may", s)
             self.update()
         return s
-    
+
     def removeDef(self):
         s = self.enD.get().upper()
         s = s.strip()
@@ -83,14 +118,14 @@ class Rosters(Frame):
             pass
         elif not self.defList.__contains__(s.upper()):
             messagebox.showinfo("Not Contained", s)
-        else: 
+        else:
             self.enD.delete(0, "end")
             self.enD.insert(0, "")
             self.defList.remove(s.upper())
             self.db.remove("def", s)
             self.update()
         return s
-    
+
     def addMay(self):
         s = self.enM.get().upper()
         s = s.strip()
@@ -98,14 +133,14 @@ class Rosters(Frame):
             pass
         elif self.mayList.__contains__(s.upper()):
             messagebox.showinfo("Alredy Contained", s)
-        else: 
+        else:
             self.enM.delete(0, "end")
             self.enM.insert(0, "")
             self.mayList.append(s.upper())
             self.db.add("may", s)
             self.update()
         return s
-    
+
     def addDef(self):
         s = self.enD.get().upper()
         s = s.strip()
@@ -140,65 +175,78 @@ class Rosters(Frame):
         self.enM.insert(0, mayStringTemp)
 
     def update(self):
+        root = self.listFrame
         self.defList.sort()
         self.mayList.sort()
         for l in self.lables:
             l.destroy()
-        h = 1
+        for row in self.rows:
+            row.destroy()
+        self.rows = list()
+        for i in range(max(len(self.defList), len(self.mayList))):
+            row = Frame(root, height=2)
+            row.pack(fill=X, padx=5, pady=5)
+            self.rows.append(row)
+        h = 0
         for s in self.defList:
-            eleNum = Label(self.tk, text=(s))
-            eleNum.place(x=10, y=20 * h, anchor = "w")
+            eleNum = Label(self.rows[h], text=(s), width=15, anchor='w')
+            eleNum.pack(side=LEFT, anchor="w")
             self.lables.append(eleNum)
             h = h + 1
-        h = 1
+        h = 0
         for s in self.mayList:
-            eleNum = Label(self.tk, text = (s))
-            eleNum.place(x=250, y=20 * h, anchor = "center")
+            eleNum = Label(self.rows[h], text=(s), width=15, anchor='e')
+            eleNum.pack(side=RIGHT, anchor="e")
             self.lables.append(eleNum)
             h = h + 1
         self.defCount['text'] = str(len(self.defList))
         self.mayCount['text'] = str(len(self.mayList))
-        
+
+        self.scrollFrame.pack(side='top', fill='both', expand=True)
+
     def addUI(self, root):
         """
             Creates UI elements, like imput and buttons
             Parameters:
                 The tk object
         """
-        scrollbar = Scrollbar(root)
-        scrollbar.pack(side="right", fill="y")
 
-        self.enD = Entry(self.tk)
+        self.enD = Entry(root)
         self.enD.pack(anchor = "e", padx = 20, pady = 10)
-        
-        button = Button(self.tk, text="Submit to Definetly Invite List", command=partial(self.addDef,))
-        button.pack(anchor = "e", padx = 20, pady = 10)
-        
-        button = Button(self.tk, text="Remove from Definetly Invite List", command = partial(self.removeDef, ))
+
+        button = Button(root, text="Submit to Definetly Invite List",
+                        command=partial(self.addDef, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        button = Button(self.tk, text="Transfer to Maybe Invite list", command = partial(self.transferFromDef, ))
+        button = Button(root, text="Remove from Definetly Invite List",
+                        command=partial(self.removeDef, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        self.enM = Entry(self.tk)
+        button = Button(root, text="Transfer to Maybe Invite list",
+                        command=partial(self.transferFromDef, ))
+        button.pack(anchor = "e", padx = 20, pady = 10)
+
+        self.enM = Entry(root)
         self.enM.pack(anchor = "e", padx = 20, pady = 10)
-        
-        button = Button(self.tk, text="Submit to Maybe Invite List", command = partial(self.addMay, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
-        
-        button = Button(self.tk, text="Remove from Maybe Invite List", command = partial(self.removeMay, ))
+
+        button = Button(root, text="Submit to Maybe Invite List", command=partial(self.addMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        button = Button(self.tk, text="Transfer to Definetly list", command = partial(self.transferfromMay, ))
+        button = Button(root, text="Remove from Maybe Invite List",
+                        command=partial(self.removeMay, ))
         button.pack(anchor = "e", padx = 20, pady = 10)
 
-        th = Button(self.tk, text="quit", command = self.quitComm)
+        button = Button(root, text="Transfer to Definetly list",
+                        command=partial(self.transferfromMay, ))
+        button.pack(anchor = "e", padx = 20, pady = 10)
+
+        th = Button(root, text="quit", command=self.quitComm)
         th.pack(anchor = "e", padx = 20, pady = 10)
 
-        self.defCount = Label(self.tk, text=str(len(self.defList)))
+        self.defCount = Label(root, text=str(len(self.defList)))
         self.defCount.pack(anchor = "e", padx = 20, pady = 10)
 
-        self.mayCount = Label(self.tk, text=str(len(self.mayList)))
+        self.mayCount = Label(root, text=str(len(self.mayList)))
         self.mayCount.pack(anchor = "e", padx = 20, pady = 10)
 
     def quitComm(self):
@@ -206,6 +254,7 @@ class Rosters(Frame):
             Stops the application
         """
         exit()
+
 
 def main():
     """
@@ -218,8 +267,10 @@ def main():
     win = Rosters(root, db)
     root.mainloop()
 
+
 def removeAll():
     db = DB()
-    db.remove("%","%")
+    db.remove("%", "%")
 
-main()
+if __name__ == '__main__':
+    main()
