@@ -1,13 +1,15 @@
 from tkinter import *
 from tkinter import messagebox
 from functools import partial
+import os.path
 
 import sqlite3
 
 
 class DB():
     def __init__(self):
-        pass
+        if not os.path.exists('db.db'):
+            self.create()
 
     def create(self):
         conn = sqlite3.connect('db.db')
