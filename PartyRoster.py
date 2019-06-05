@@ -45,6 +45,7 @@ class DB():
         conn.close()
         return s
 
+
 class ScrollFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent)  # create a frame (self)
@@ -78,7 +79,7 @@ class Rosters(Frame):
         self.db = db
         self.defList = list()
         self.mayList = list()
-        self.lables = list()
+        self.labels = list()
         self.rows = list()
         self.scrollFrame = ScrollFrame(root)
 
@@ -86,7 +87,6 @@ class Rosters(Frame):
         self.listFrame.pack(side=LEFT, fill=Y)
         self.buttonsFrame = Frame(self.scrollFrame.viewPort)
         self.buttonsFrame.pack(side=RIGHT, fill=Y)
-
 
         self.addUI(self.buttonsFrame)
         for s in self.db.findPerson("%", "%"):
@@ -96,7 +96,7 @@ class Rosters(Frame):
                 self.mayList.append(s[1])
         self.update()
 
-    def removeMay(self):
+    def remove_maybe(self):
         s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
@@ -111,7 +111,7 @@ class Rosters(Frame):
             self.update()
         return s
 
-    def removeDef(self):
+    def remove_definitely(self):
         s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
@@ -126,14 +126,14 @@ class Rosters(Frame):
             self.update()
         return s
 
-    def addMay(self):
+    def add_maybe(self):
         s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
             pass
         elif self.mayList.__contains__(s.upper()):
             messagebox.showinfo("Alredy Contained", s)
-        else: 
+        else:
             self.enD.delete(0, "end")
             self.enD.insert(0, "")
             self.mayList.append(s.upper())
@@ -141,7 +141,7 @@ class Rosters(Frame):
             self.update()
         return s
 
-    def addDef(self):
+    def add_definitely(self):
         s = self.enD.get().upper()
         s = s.strip()
         if len(s) == 0:
@@ -156,29 +156,29 @@ class Rosters(Frame):
             self.update()
         return s
 
-    def transferfromMay(self):
-        s = self.removeMay()
-        defStringTemp = self.enD.get().strip()
+    def transfer_from_maybe(self):
+        s = self.remove_maybe()
+        definitely_string = self.enD.get().strip()
         self.enD.delete(0, "end")
         self.enD.insert(0, s)
-        self.addDef()
+        self.add_definitely()
         self.enD.delete(0, "end")
-        self.enD.insert(0, defStringTemp)
+        self.enD.insert(0, definitely_string)
 
-    def transferFromDef(self):
-        s = self.removeDef()
-        mayStringTemp = self.enD.get().strip()
+    def transfer_from_definitely(self):
+        s = self.remove_definitely()
+        maybe_string = self.enD.get().strip()
         self.enD.delete(0, "end")
         self.enD.insert(0, s)
-        self.addMay()
+        self.add_maybe()
         self.enD.delete(0, "end")
-        self.enD.insert(0, mayStringTemp)
+        self.enD.insert(0, maybe_string)
 
     def update(self):
         root = self.listFrame
         self.defList.sort()
         self.mayList.sort()
-        for l in self.lables:
+        for l in self.labels:
             l.destroy()
         for row in self.rows:
             row.destroy()
@@ -189,15 +189,15 @@ class Rosters(Frame):
             self.rows.append(row)
         h = 0
         for s in self.defList:
-            eleNum = Label(self.rows[h], text=(s), width=15, anchor='w')
-            eleNum.pack(side=LEFT, anchor="w")
-            self.lables.append(eleNum)
+            guest_name = Label(self.rows[h], text=(s), width=15, anchor='w')
+            guest_name.pack(side=LEFT, anchor="w")
+            self.labels.append(guest_name)
             h = h + 1
         h = 0
         for s in self.mayList:
-            eleNum = Label(self.rows[h], text=(s), width=15, anchor='e')
-            eleNum.pack(side=RIGHT, anchor="e")
-            self.lables.append(eleNum)
+            guest_name = Label(self.rows[h], text=(s), width=15, anchor='e')
+            guest_name.pack(side=RIGHT, anchor="e")
+            self.labels.append(guest_name)
             h = h + 1
         self.defCount['text'] = str(len(self.defList))
         self.mayCount['text'] = str(len(self.mayList))
@@ -212,42 +212,42 @@ class Rosters(Frame):
         """
 
         self.enD = Entry(root)
-        self.enD.pack(anchor = "e", padx = 20, pady = 10)
+        self.enD.pack(anchor="e", padx=20, pady=10)
 
-        button = Button(root, text="Submit to Definetly Invite List",
-                        command=partial(self.addDef, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+        button = Button(root, text="Submit to Definitely Invite List",
+                        command=partial(self.add_definitely, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
-        button = Button(root, text="Remove from Definetly Invite List",
-                        command=partial(self.removeDef, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+        button = Button(root, text="Remove from Definitely Invite List",
+                        command=partial(self.remove_definitely, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
-        button = Button(root, text="Submit to Maybe Invite List", command=partial(self.addMay, ))
-        button.pack(anchor= "e", padx = 20, pady = 10)
-        button = Button(root, text="Transfer to Maybe Invite List", command = partial(self.transferFromDef, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+        button = Button(root, text="Submit to Maybe Invite List", command=partial(self.add_maybe, ))
+        button.pack(anchor="e", padx=20, pady=10)
+        button = Button(root, text="Transfer to Maybe Invite List", command=partial(self.transfer_from_definitely, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
-        
-        button = Button(root, text="Submit to Maybe Invite List", command = partial(self.addMay, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+        button = Button(root, text="Submit to Maybe Invite List", command=partial(self.add_maybe, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
         button = Button(root, text="Remove from Maybe Invite List",
-                        command=partial(self.removeMay, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+                        command=partial(self.remove_maybe, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
-        button = Button(root, text="Transfer to Definetly list", command=partial(self.transferfromMay, ))
-        button.pack(anchor = "e", padx = 20, pady = 10)
+        button = Button(root, text="Transfer to Definitely list", command=partial(self.transfer_from_maybe, ))
+        button.pack(anchor="e", padx=20, pady=10)
 
-        th = Button(root, text="quit", command=self.quitComm)
-        th.pack(anchor = "e", padx = 20, pady = 10)
+        th = Button(root, text="quit", command=self.quit_app)
+        th.pack(anchor="e", padx=20, pady=10)
 
         self.defCount = Label(root, text=str(len(self.defList)))
-        self.defCount.pack(anchor = "e", padx = 20, pady = 10)
+        self.defCount.pack(anchor="e", padx=20, pady=10)
 
         self.mayCount = Label(root, text=str(len(self.mayList)))
-        self.mayCount.pack(anchor = "e", padx = 20, pady = 10)
+        self.mayCount.pack(anchor="e", padx=20, pady=10)
 
-    def quitComm(self):
+    @staticmethod
+    def quit_app():
         """
             Stops the application
         """
@@ -266,9 +266,10 @@ def main():
     root.mainloop()
 
 
-def removeAll():
+def remove_all():
     db = DB()
     db.remove("%", "%")
+
 
 if __name__ == '__main__':
     main()
